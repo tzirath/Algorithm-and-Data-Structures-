@@ -1,0 +1,83 @@
+/* This programming exercise is the first part of creating a Huffman
+encoding program. You will continue it next week. Write a Java
+program which takes in a line from the user (using Scanner) and then
+outputs
+i) The sentence in ASCII
+ii) ii) Each letter in the sentence and its frequency
+*/
+
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+
+public class Lab0SampleAnswer {
+    /* Provided code */
+    public static final char[] ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
+
+    public static String sha256(String input) throws NoSuchAlgorithmException {
+        byte[] in = hexStringToByteArray(input);
+        MessageDigest mDigest = MessageDigest.getInstance("SHA-256");
+        byte[] result = mDigest.digest(in);
+
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < result.length; i++) {
+            sb.append(Integer.toString((result[i] & 0xff) + 0x100, 16).substring(1));
+        }
+        return sb.toString();
+    }
+
+    public static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte)((Character.digit(s.charAt(i), 16) << 4) +
+                Character.digit(s.charAt(i + 1), 16));
+        }
+        return data;
+    }
+
+    /* Code to be marked */
+    public static void main(String[] args) throws NoSuchAlgorithmException {
+        // Example secret: "133744e02380b241c22a73a26bff8ef0f1049ac513e880eca707b3010d32a9e3"
+        String secret = getRandomHexString(64);
+        String hexstring80 = "80" + secret;
+
+        String doubleHash = sha256(sha256(hexstring80));
+        String finalHexString = hexstring80 + doubleHash.substring(0, 8);
+
+        System.out.println(encode(finalHexString));
+    }
+
+    static String getRandomHexString(int numberOfDigits) {
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new byte[numberOfDigits / 2];  // Two digits to a byte
+        random.nextBytes(bytes);
+        return byteArrayToHexString(bytes);
+    }
+
+    static String byteArrayToHexString(byte[] bytes) {
+        String hexString = "";
+        for (int i = 0; i < bytes.length; i++) {
+            // Make sure when converting byte to hex that
+            // you pad with 0 if the string is too short.
+            hexString += String.format("%02x", bytes[i]);
+        }
+        return hexString;
+    }
+
+    static String encode(String hexString) {
+        BigInteger base58 = BigInteger.valueOf(58);
+        BigInteger x = new BigInteger(hexString, 16);
+
+        String base58String = "";
+        while (x.compareTo(BigInteger.ZERO) > 0) {
+            // As we are modding by 58
+            // we can convert the BigInteger to an int safely.
+            int remainder = x.mod(base58).intValueExact();
+            base58String = ALPHABET[remainder] + base58String;
+            x = x.divide(base58);
+        }
+        return base58String;
+    }
+}
