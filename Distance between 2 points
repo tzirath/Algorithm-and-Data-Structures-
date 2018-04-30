@@ -1,0 +1,28 @@
+import java.lang.Math;
+
+class Main {
+    final static int R = 6371;
+
+    public static void main(String args[]) {
+        System.out.println("Distance is: " + findDistance(53.38463, -6.60139, 39.0366364 ,125.73091870000007));
+    }
+
+    public static double findDistance(double lat1, double long1, double lat2, double long2) {
+
+        // Change diff between latitudes and longitudes into radians
+        double latDist = Math.toRadians(lat2 - lat1);
+        double longDist = Math.toRadians(long2 - long1); 
+        
+
+        // Change latitude values to radians
+        lat1 = Math.toRadians(lat1);
+        lat2   = Math.toRadians(lat2);
+
+        double haversine = haversin(latDist) + Math.cos(lat1) * Math.cos(lat2) * haversin(longDist);
+        return 2 * R * Math.asin(Math.sqrt(haversine)); // return distnce
+    }
+
+    public static double haversin(double val) {
+        return Math.pow(Math.sin(val / 2), 2);
+    }
+}
